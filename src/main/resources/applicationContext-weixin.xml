@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+	<bean id="wxMpConfigStorage" class="me.chanjar.weixin.mp.api.WxMpInMemoryConfigStorage">
+		<property name="appId" value="${weixin.appId}"></property>
+		<property name="secret" value="${weixin.secret}"></property>
+		<property name="token" value="${weixin.token}"></property>
+		<property name="aesKey" value="${weixin.aesKey}"></property>
+		<property name="oauth2redirectUri" value="${weixin.oauth2redirectUri}"></property>
+		<property name="http_proxy_host" value="${weixin.http_proxy_host}"></property>
+		<property name="http_proxy_port" value="${weixin.http_proxy_port}"></property>
+		
+	</bean>
+
+	<!-- 微信服务Bean定义-->
+	<bean id="wxMpService" class="me.chanjar.weixin.mp.api.WxMpServiceImpl">
+		<property name="wxMpConfigStorage" ref="wxMpConfigStorage"></property>
+	</bean>
+
+	<!-- 微信消息路由Bean定义 -->
+	<bean id="wxMpMessageRouter" class="me.chanjar.weixin.mp.api.WxMpMessageRouter">
+		<constructor-arg ref="wxMpService"></constructor-arg>
+	</bean>
+
+
+	<!-- 
+		对每一类消息类型定义一个规则，确定他的handler
+		rule bean (must set init-method="end"
+	-->
+	<bean id="eventRule" class="me.chanjar.weixin.mp.api.WxMpMessageRouterRule"
+		init-method="end">
+		<constructor-arg ref="wxMpMessageRouter"></constructor-arg>
+		<property name="msgType" value="event"></property>
+		<property name="async" value="false"></property>
+		<property name="handlers">
+			<list>
+				<ref bean="wxMpEventMessageHandler" />
+			</list>
+		</property>
+	</bean>
+	
+	
+
+</beans>
